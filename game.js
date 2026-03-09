@@ -1,11 +1,9 @@
 /**
- * PENALTY GLORY - KILLER EDITION (RESGATE)
- * 
- * ESPECIFICAÇÕES:
- * - Mira Oscilante (Dynamic Aim)
- * - Alternância Automática (Eu -> IA -> Eu)
- * - Visão Frontal p/ Goleiro
- * - Morte Súbita
+ * BRASILEIRÃO PENALTY CHALLENGE - PRECISION EDITION
+ * - Retículo Dinâmico (Precision Aim)
+ * - Barra de Força (80% Optimal)
+ * - Alternância de Turnos
+ * - Dica do Goleiro (Friv Dot)
  */
 
 const TEAMS = [
@@ -32,285 +30,297 @@ const TEAMS = [
 ];
 
 const state = {
-    screen: 'main-menu',
-    playerTeam: null,
-    aiTeam: null,
-    score: { player: 0, ai: 0 },
+    screen: 'menu',
+    team: null, rival: null,
+    score: { p: 0, ai: 0 },
     turn: 'player', // player, ai
-    round: 1, // max 5
-    isSuddenDeath: false,
-    gameState: 'idle', // idle, osc, kick, result
+    round: 1, stage: 0, // 0-3 (Oitavas-Final)
+    
+    gameState: 'idle', // idle, osc, charging, flying, result
     
     // Physics / Aim
-    aimX: 400,
-    aimY: 250,
-    aimOsc: 0, 
-    gkX: 400,
-    gkTargetX: 400,
-    gkAnim: 'idle',
-    ballPos: { x: 400, y: 440 },
-    ballTarget: { x: 400, y: 250 },
+    aimX: 500, aimY: 300,
+    aimSpd: 0.04, aimTime: 0,
+    power: 0, powerDir: 1,
+    
+    ball: { x: 500, y: 530, tx: 500, ty: 300 },
+    gk: { x: 500, y: 220, tx: 500, anim: 'idle' },
     
     keys: { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, Space: false }
 };
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-canvas.width = 800;
-canvas.height = 500;
+canvas.width = 1000;
+canvas.height = 600;
 
+const reticle = document.getElementById('aim-reticle');
+const hint = document.getElementById('ai-hint');
+
+// Preload Icons
 const assets = { shields: {} };
-
-// Carregamento Imediato Dicebear (Seguro)
-function loadDirectAssets() {
+function preload() {
     TEAMS.forEach(t => {
-        const img = new Image();
-        img.src = `https://api.dicebear.com/7.x/initials/svg?seed=${t.name}&backgroundColor=${t.color.substring(1)}`;
-        assets.shields[t.id] = img;
+        const i = new Image();
+        i.src = `https://api.dicebear.com/7.x/initials/svg?seed=${t.name}&backgroundColor=${t.color.substring(1)}`;
+        assets.shields[t.id] = i;
     });
 }
 
-function changeScreen(id) {
-    document.querySelectorAll('.active-screen, .hidden-screen').forEach(s => {
-        s.className = 'hidden-screen';
-    });
-    document.getElementById(id).className = 'active-screen';
+function nav(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id + '-screen').classList.add('active');
     state.screen = id;
-    if (id === 'team-selection') renderTeams();
+    if (id === 'selection') renderSelection();
 }
 
-function renderTeams() {
-    const grid = document.getElementById('teams-grid');
-    grid.innerHTML = '';
+function renderSelection() {
+    const g = document.getElementById('teams-grid');
+    g.innerHTML = '';
     TEAMS.forEach(t => {
         const c = document.createElement('div');
         c.className = 'team-card';
-        c.innerHTML = `<img src="${assets.shields[t.id].src}" class="team-icon"> <span class="team-name">${t.name}</span>`;
+        c.innerHTML = `<img src="${assets.shields[t.id].src}" style="width:40px"><span style="font-size:0.7rem">${t.name}</span>`;
         c.onclick = () => {
             document.querySelectorAll('.team-card').forEach(x => x.classList.remove('selected'));
             c.classList.add('selected');
-            state.playerTeam = t;
+            state.team = t;
             document.getElementById('start-btn').disabled = false;
         };
-        grid.appendChild(c);
+        g.appendChild(c);
     });
 }
 
-function startGame() {
-    const others = TEAMS.filter(x => x.id !== state.playerTeam.id);
-    state.aiTeam = others[Math.floor(Math.random() * others.length)];
-    state.score = { player: 0, ai: 0 };
-    state.round = 1;
-    state.turn = 'player';
-    state.isSuddenDeath = false;
-    
-    changeScreen('game-screen');
-    startTurn();
+function initGame() {
+    state.stage = 0;
+    state.score = { p: 0, ai: 0 };
+    nextMatch();
+    nav('game');
     requestAnimationFrame(gameLoop);
 }
 
-function startTurn() {
-    state.gameState = 'idle';
-    state.aimOsc = 0;
-    state.ballPos = { x: 400, y: 440 };
-    state.gkX = 400;
-    state.gkAnim = 'idle';
+function nextMatch() {
+    const pool = TEAMS.filter(t => t.id !== state.team.id);
+    state.rival = pool[Math.floor(Math.random() * pool.length)];
+    state.round = 1;
+    state.turn = 'player';
     
-    document.getElementById('turn-indicator').innerText = (state.turn === 'player') ? "VOCÊ BATE" : "IA BATE - PULE!";
-    document.getElementById('action-msg').innerText = "PREPARE-SE";
-    document.getElementById('shots-left').innerText = `ROUND: ${state.round}/5 ${state.isSuddenDeath ? '(MORTE SÚBITA)' : ''}`;
-    updateScoreUI();
+    document.getElementById('p-logo').src = assets.shields[state.team.id].src;
+    document.getElementById('ai-logo').src = assets.shields[state.rival.id].src;
+    document.getElementById('stage-label').innerText = ["OITAVAS", "QUARTAS", "SEMIFINAL", "GRANDE FINAL"][state.stage];
+    
+    resetTurn();
 }
 
-function updateScoreUI() {
-    document.getElementById('p-score').innerText = state.score.player;
-    document.getElementById('ai-score').innerText = state.score.ai;
+function resetTurn() {
+    state.gameState = 'idle';
+    state.power = 0;
+    state.aimTime = 0;
+    state.ball = { x: 500, y: 530 };
+    state.gk = { x: 500, y: 220, tx: 500 };
+    
+    reticle.style.display = (state.turn === 'player') ? 'block' : 'none';
+    hint.style.display = 'none';
+    document.getElementById('game-msg').innerText = (state.turn === 'player') ? "SUA VEZ DE BATER" : "IA VAI BATER - FIQUE ATENTO";
+    updateHUD();
 }
 
-window.addEventListener('keydown', e => { 
-    const k = e.code.replace('Key', '');
-    if (state.keys.hasOwnProperty(k)) state.keys[k] = true;
-});
-window.addEventListener('keyup', e => { 
-    const k = e.code.replace('Key', '');
-    if (state.keys.hasOwnProperty(k)) state.keys[k] = false;
-});
+function updateHUD() {
+    document.getElementById('p-goals').innerText = state.score.p;
+    document.getElementById('ai-goals').innerText = state.score.ai;
+    document.getElementById('power-bar-fill').style.width = state.power + "%";
+}
+
+window.addEventListener('keydown', e => { if (state.keys.hasOwnProperty(e.code)) state.keys[e.code] = true; });
+window.addEventListener('keyup', e => { if (state.keys.hasOwnProperty(e.code)) state.keys[e.code] = false; });
 
 function update() {
-    if (state.screen !== 'game-screen' || state.gameState === 'result' || state.gameState === 'kick') return;
+    if (state.screen !== 'game' || state.gameState === 'flying' || state.gameState === 'result') return;
 
     if (state.turn === 'player') {
-        // MIRA OSCILANTE
-        state.aimOsc += 0.05;
-        state.aimX = 400 + Math.sin(state.aimOsc) * 200;
-        state.aimY = 200 + Math.cos(state.aimOsc * 1.5) * 60;
+        // MIRA OSCILANTE (PRECISION TARGET)
+        state.aimTime += 0.04 + (state.stage * 0.01);
+        let base_x = 500 + Math.sin(state.aimTime) * 250;
+        let base_y = 220 + Math.cos(state.aimTime * 1.5) * 80;
 
-        // Influência Jogador (Segurar setas para travar a mira)
+        // Controle Manual das Setas
         if (state.keys.ArrowLeft) state.aimX -= 5;
         if (state.keys.ArrowRight) state.aimX += 5;
         if (state.keys.ArrowUp) state.aimY -= 5;
         if (state.keys.ArrowDown) state.aimY += 5;
 
-        document.getElementById('action-msg').innerText = "MIRA ESTÁ OSCILANDO!";
+        // Se não tiver setas pressionadas, segue o padrão
+        if (!state.keys.ArrowLeft && !state.keys.ArrowRight && !state.keys.ArrowUp && !state.keys.ArrowDown) {
+            state.aimX = base_x; state.aimY = base_y;
+        }
 
+        // Clamp da mira
+        state.aimX = Math.max(250, Math.min(750, state.aimX));
+        state.aimY = Math.max(160, Math.min(320, state.aimY));
+
+        reticle.style.left = (state.aimX - 20) + "px";
+        reticle.style.top = (state.aimY - 20) + "px";
+
+        // Charging Power
         if (state.keys.Space || state.keys.ArrowUp) {
-            executeKick(state.aimX, state.aimY);
+            state.gameState = 'charging';
+            state.power += 1.5;
+            if (state.power > 100) state.power = 100;
+            updateHUD();
+        } else if (state.gameState === 'charging') {
+            kick();
         }
     } else {
-        // IA BATE: EU NO GOL
+        // IA BATE - JOGADOR NO GOL
         if (state.gameState === 'idle') {
-            document.getElementById('action-msg').innerText = "IA PREPARANDO...";
             state.gameState = 'osc';
             setTimeout(() => {
-                const targetX = 300 + Math.random() * 200;
-                const targetY = 180 + Math.random() * 100;
-                executeKick(targetX, targetY);
-            }, 1500);
+                // Dica do Friv (Hint Dot)
+                const tx = 300 + Math.random() * 400;
+                const ty = 180 + Math.random() * 120;
+                hint.style.left = (tx - 4) + "px";
+                hint.style.top = (ty - 4) + "px";
+                hint.style.display = 'block';
+                
+                setTimeout(() => { kick(tx, ty); }, 600);
+            }, 1200);
         }
 
-        // Movimento do Goleiro (EU)
-        if (state.keys.ArrowLeft) state.gkTargetX = 300;
-        else if (state.keys.ArrowRight) state.gkTargetX = 500;
-        else state.gkTargetX = 400;
-
-        if (state.keys.ArrowUp) state.gkAnim = 'high';
-        else if (state.keys.ArrowDown) state.gkAnim = 'low';
-        else state.gkAnim = 'side';
-
-        state.gkX += (state.gkTargetX - state.gkX) * 0.1;
+        // Movimentação do Goleiro
+        const gkSpd = 8;
+        if (state.keys.ArrowLeft) state.gk.x -= gkSpd;
+        if (state.keys.ArrowRight) state.gk.x += gkSpd;
+        state.gk.x = Math.max(300, Math.min(700, state.gk.x));
     }
 }
 
-function executeKick(tx, ty) {
-    state.gameState = 'kick';
-    state.ballTarget = { x: tx, y: ty };
-    
-    // IA GK REACTION
+function kick(targetX, targetY) {
+    state.gameState = 'flying';
+    reticle.style.display = 'none';
+    hint.style.display = 'none';
+
+    let tx = targetX || state.aimX;
+    let ty = targetY || state.aimY;
+
+    // Power Penalties (If too high, ball goes up)
+    if (state.turn === 'player' && state.power > 90) ty -= 80;
+
+    // Wind Effect (Final Only)
+    if (state.stage === 3) tx += 40; 
+
+    // IA GK Reaction
     if (state.turn === 'player') {
-        state.gkTargetX = (Math.random() > 0.4) ? tx : 400; // 60% chance de pular certo
-        state.gkAnim = (ty < 220) ? 'high' : 'low';
+        const diff = [0.4, 0.6, 0.8, 0.95][state.stage];
+        state.gk.tx = (Math.random() < diff) ? tx : (Math.random() > 0.5 ? 200 : 800);
     }
 
-    // ANIMAÇÃO BOLA
     const duration = 600;
-    const startX = state.ballPos.x;
-    const startY = state.ballPos.y;
+    const startX = state.ball.x;
+    const startY = state.ball.y;
     const startTime = performance.now();
 
-    function step(now) {
+    function animate(now) {
         const t = Math.min((now - startTime) / duration, 1);
-        state.ballPos.x = startX + (tx - startX) * t;
-        state.ballPos.y = startY + (ty - startY) * t;
+        state.ball.x = startX + (tx - startX) * t;
+        state.ball.y = startY + (ty - startY) * t;
         
-        // Movimento do GK IA
-        if (state.turn === 'player') {
-            state.gkX += (state.gkTargetX - state.gkX) * 0.1;
-        }
+        // GK Move
+        if (state.turn === 'player') state.gk.x += (state.gk.tx - state.gk.x) * 0.1;
 
-        if (t < 1) requestAnimationFrame(step);
-        else resolveTurn(tx, ty);
+        if (t < 1) requestAnimationFrame(animate);
+        else resolveOutcome(tx, ty);
     }
-    requestAnimationFrame(step);
+    requestAnimationFrame(animate);
 }
 
-function resolveTurn(tx, ty) {
+function resolveOutcome(tx, ty) {
     state.gameState = 'result';
-    const isGoal = (tx > 250 && tx < 550 && ty > 150 && ty < 280);
-    const gkDist = Math.abs(tx - state.gkX);
-    
-    let result = "ERROU";
-    if (isGoal) {
-        if (gkDist > 60) {
-            result = "GOL!";
-            if (state.turn === 'player') state.score.player++;
-            else state.score.ai++;
-        } else {
-            result = "DEFENDEU!";
-        }
-    } else {
-        result = "FORA!";
-    }
+    const inGoal = (tx > 300 && tx < 700 && ty > 150 && ty < 280);
+    const saved = Math.abs(tx - state.gk.x) < 60 && Math.abs(ty - state.gk.y) < 60;
 
-    document.getElementById('action-msg').innerText = result;
-    updateScoreUI();
+    let res = "ERROU";
+    if (saved) res = "DEFENDEU!";
+    else if (inGoal) {
+        res = "GOL!";
+        if (state.turn === 'player') state.score.p++;
+        else state.score.ai++;
+    } else res = "FORA!";
+
+    document.getElementById('game-msg').innerText = res;
+    updateHUD();
 
     setTimeout(() => {
-        if (state.turn === 'player') {
-            state.turn = 'ai';
-        } else {
-            state.turn = 'player';
-            state.round++;
-        }
+        if (state.turn === 'player') state.turn = 'ai';
+        else { state.turn = 'player'; state.round++; }
 
-        // FIM DE JOGO?
-        if (state.round > 5 || state.isSuddenDeath) {
-            if (state.score.player !== state.score.ai) {
-                finishGame();
-                return;
-            } else {
-                state.isSuddenDeath = true;
-            }
+        if (state.round > 5) {
+            if (state.score.p !== state.score.ai) applyWinner();
+            // Else Sudden Death continues implicitly
         }
-        startTurn();
+        resetTurn();
     }, 1500);
 }
 
-function finishGame() {
-    if (state.score.player > state.score.ai) {
-        changeScreen('victory-screen');
-        document.getElementById('winner-shield').src = assets.shields[state.playerTeam.id].src;
+function applyWinner() {
+    if (state.score.p > state.score.ai) {
+        state.stage++;
+        if (state.stage > 3) {
+            nav('final');
+            document.getElementById('winner-img').src = assets.shields[state.team.id].src;
+        } else {
+            alert("VOCÊ AVANÇOU!");
+            nextMatch();
+        }
     } else {
-        alert("PERDEU! TENTE NOVAMENTE.");
+        alert("DERROTA! Fim de campeonato.");
         location.reload();
     }
 }
 
 function draw() {
     ctx.clearRect(0,0, canvas.width, canvas.height);
-    
-    // FUNDO / GOL
-    ctx.fillStyle = '#003300';
-    ctx.fillRect(0, 400, 800, 100);
+
+    // GRAMADO
+    ctx.fillStyle = '#081a0e';
+    ctx.fillRect(0, 480, 1000, 120);
+    ctx.fillStyle = '#030406';
+    ctx.fillRect(0, 0, 1000, 480);
+
+    // GOL
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = 10;
-    ctx.strokeRect(250, 150, 300, 130);
-    
-    // ESCUDO NO CHÃO (SOB A BOLA)
-    if (state.playerTeam && assets.shields[state.playerTeam.id]) {
+    ctx.strokeRect(300, 150, 400, 130);
+    // Rede Estilo Friv
+    ctx.lineWidth = 1; ctx.globalAlpha = 0.3;
+    for(let i=300; i<=700; i+=20) { ctx.beginPath(); ctx.moveTo(i, 150); ctx.lineTo(i, 280); ctx.stroke(); }
+    for(let i=150; i<=280; i+=20) { ctx.beginPath(); ctx.moveTo(300, i); ctx.lineTo(700, i); ctx.stroke(); }
+    ctx.globalAlpha = 1;
+
+    // ESCUDO NO CHÃO
+    if (state.team && assets.shields[state.team.id]) {
         ctx.save();
         ctx.globalAlpha = 0.2;
-        ctx.drawImage(assets.shields[state.playerTeam.id], 370, 410, 60, 60);
+        ctx.drawImage(assets.shields[state.team.id], 475, 500, 50, 50);
         ctx.restore();
     }
 
     // GOLEIRO
-    ctx.fillStyle = (state.gkAnim === 'high') ? '#0ff' : '#222';
-    ctx.fillRect(state.gkX - 25, 230 - (state.gkAnim === 'high' ? 30 : 0), 50, 50);
-
-    // MIRA (Só se for minha vez de bater)
-    if (state.turn === 'player' && state.gameState !== 'kick') {
-        ctx.strokeStyle = '#f00';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(state.aimX, state.aimY, 15, 0, Math.PI*2);
-        ctx.stroke();
-    }
+    ctx.fillStyle = '#222';
+    ctx.fillRect(state.gk.x - 25, state.gk.y - 35, 50, 70);
 
     // BOLA
     ctx.beginPath();
     ctx.fillStyle = '#fff';
     ctx.shadowBlur = 10; ctx.shadowColor = '#fff';
-    ctx.arc(state.ballPos.x, state.ballPos.y, 8, 0, Math.PI*2);
+    ctx.arc(state.ball.x, state.ball.y, 10, 0, Math.PI*2);
     ctx.fill();
     ctx.shadowBlur = 0;
 }
 
 function gameLoop() {
-    if (state.screen === 'game-screen') {
-        update();
-        draw();
-        requestAnimationFrame(gameLoop);
-    }
+    update();
+    draw();
+    if (state.screen === 'game') requestAnimationFrame(gameLoop);
 }
 
-loadDirectAssets();
+preload();

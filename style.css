@@ -1,46 +1,66 @@
 :root {
-    --bg: #000000;
-    --neon-green: #39ff14;
-    --neon-blue: #00d4ff;
-    --neon-red: #ff3131;
+    --bg: #030406;
+    --primary: #00ff88;
+    --secondary: #00d4ff;
+    --accent: #ff0055;
+    --white: #ffffff;
     --glass: rgba(255, 255, 255, 0.05);
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Kanit', sans-serif; }
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Outfit', sans-serif;
+    user-select: none;
+}
 
 body {
     background-color: var(--bg);
-    color: white;
+    color: var(--white);
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
     overflow: hidden;
-    user-select: none;
 }
 
-#kill-switch-screen {
+#game-wrapper {
     width: 100vw;
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
     position: relative;
-    background: radial-gradient(circle at center, #0a0a0a 0%, #000 100%);
+    background: radial-gradient(circle at center, #0a0e14 0%, #030406 100%);
 }
 
-/* FORÇAR CENTRALIZAÇÃO ESTÁTICA */
-.active-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.hidden-screen { display: none; flex-direction: column; align-items: center; justify-content: center; }
+.screen {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.4s ease-out;
+}
 
-#viewport-wrap {
+.screen.active { display: flex; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(1.05); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* VIEWPORT FIXO 720p (1280x720 Scale) */
+#viewport {
     position: relative;
-    width: 800px;
-    height: 500px;
-    border: 2px solid var(--neon-blue);
-    background: #001a00; /* Gramado Escuro */
-    box-shadow: 0 0 50px rgba(0, 212, 255, 0.2);
-    margin: 20px 0;
+    width: 1000px; /* Base size */
+    height: 600px;
+    background: #000;
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 60px rgba(0,0,0,0.8);
+    overflow: hidden;
 }
 
 #gameCanvas {
@@ -49,125 +69,159 @@ body {
     display: block;
 }
 
-/* UI ELEMENTS */
-.glory-title {
-    font-size: 6rem;
+/* RETÍCULO DE MIRA ESTILO FRIV */
+#aim-reticle {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--accent);
+    border-radius: 50%;
+    display: none;
+    pointer-events: none;
+    z-index: 50;
+    box-shadow: 0 0 15px var(--accent);
+}
+
+#aim-reticle::before, #aim-reticle::after {
+    content: '';
+    position: absolute;
+    background: var(--accent);
+}
+
+#aim-reticle::before { width: 100%; height: 2px; top: 50%; left: 0; }
+#aim-reticle::after { height: 100%; width: 2px; left: 50%; top: 0; }
+
+/* DICA DO GOLEIRO (Ponto Branco do Friv) */
+#ai-hint {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: #fff;
+    border-radius: 50%;
+    display: none;
+    pointer-events: none;
+    z-index: 55;
+    box-shadow: 0 0 10px #fff;
+}
+
+/* HUD MASTER */
+#hud-master {
+    position: absolute;
+    top: 5%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    z-index: 100;
+}
+
+.match-box {
+    display: flex;
+    align-items: center;
+    gap: 3rem;
+    background: rgba(0,0,0,0.85);
+    padding: 0.8rem 3rem;
+    border-radius: 60px;
+    border: 2px solid var(--primary);
+}
+
+.team-side { display: flex; align-items: center; gap: 1rem; font-size: 2.5rem; font-weight: 900; }
+.team-side img { width: 50px; height: 50px; object-fit: contain; }
+.vs-badge { font-size: 0.8rem; font-weight: 900; color: var(--accent); border: 1px solid var(--accent); padding: 2px 8px; border-radius: 4px; }
+
+#stage-label {
+    font-size: 0.8rem;
     font-weight: 900;
-    font-style: italic;
-    letter-spacing: -5px;
-    text-shadow: 0 0 20px var(--neon-green);
-    color: #fff;
+    letter-spacing: 5px;
+    color: var(--secondary);
+    text-transform: uppercase;
 }
 
-.subtitle-neon {
-    letter-spacing: 12px;
-    color: var(--neon-blue);
-    font-weight: 700;
-    margin-bottom: 3rem;
+/* BARRA DE FORÇA PRECISION */
+#power-bar-container {
+    width: 400px;
+    height: 12px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    position: relative;
+    overflow: hidden;
 }
 
-.btn-direct {
-    background: var(--neon-green);
+#power-bar-fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), #fff, var(--accent));
+}
+
+.power-marker {
+    position: absolute;
+    right: 20%;
+    top: -15px;
+    font-size: 0.6rem;
+    font-weight: 900;
+    color: var(--accent);
+}
+
+/* UI/MENU */
+.main-title {
+    font-size: 7rem;
+    font-weight: 900;
+    line-height: 0.9;
+    background: linear-gradient(180deg, #fff 0%, #00ff88 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 10px 40px rgba(0,255,136,0.3);
+}
+
+.main-subtitle { letter-spacing: 15px; opacity: 0.5; margin-bottom: 4rem; font-weight: 700; }
+
+.btn-start {
+    background: var(--primary);
     color: #000;
     border: none;
-    padding: 1rem 3rem;
+    padding: 1.2rem 4.5rem;
     font-size: 1.2rem;
     font-weight: 900;
+    border-radius: 4px;
     cursor: pointer;
     text-transform: uppercase;
-    clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%);
-    transition: 0.2s;
+    transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.btn-direct:hover {
-    transform: scale(1.1);
-    background: #fff;
-}
+.btn-start:hover:not(:disabled) { transform: translateY(-5px) scale(1.05); box-shadow: 0 10px 40px var(--primary); }
+.btn-start:disabled { opacity: 0.1; cursor: default; }
 
-.btn-direct:disabled { opacity: 0.2; cursor: default; }
-
-/* HUD EXCLUSIVO */
-#game-hud {
-    width: 800px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    background: var(--glass);
-    border-radius: 4px;
-}
-
-.score-container {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-}
-
-.score-box {
-    font-size: 2.5rem;
-    font-weight: 900;
-    background: #000;
-    padding: 0 20px;
-    border: 1px solid var(--neon-green);
-    color: var(--neon-green);
-}
-
-.team-label { font-weight: 700; color: #aaa; text-transform: uppercase; }
-
-#action-msg {
-    font-size: 1.5rem;
-    font-weight: 900;
-    color: var(--neon-red);
-    text-transform: uppercase;
-    animation: pulse 1s infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 0.6; }
-    50% { opacity: 1; }
-}
-
-/* GRID DE TIMES */
 #teams-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 15px;
     max-height: 50vh;
     overflow-y: auto;
-    padding: 20px;
-    background: rgba(255,255,255,0.02);
+    padding: 2rem;
+    background: var(--glass);
+    border-radius: 12px;
+    margin-bottom: 2rem;
 }
 
 .team-card {
-    padding: 15px;
+    padding: 1rem;
     background: #111;
     border: 2px solid transparent;
     cursor: pointer;
     display: flex;
     flex-direction: column;
     align-items: center;
-    transition: 0.2s;
 }
 
-.team-card:hover { background: #222; }
-.team-card.selected { border-color: var(--neon-green); background: rgba(57, 255, 20, 0.1); }
+.team-card.selected { border-color: var(--primary); background: rgba(0,255,136,0.1); }
 
-.team-icon { width: 50px; height: 50px; }
-.team-name { font-size: 0.7rem; margin-top: 5px; font-weight: 700; text-align: center; }
+.controls-legend { position: absolute; bottom: 5%; font-size: 0.7rem; font-weight: 900; opacity: 0.4; letter-spacing: 3px; }
 
-#victory-screen {
-    z-index: 100;
-}
-
-#trophy-award {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 2rem;
-}
-
-#winner-shield {
-    width: 200px;
-    height: 200px;
-    filter: drop-shadow(0 0 30px var(--neon-green));
+#game-msg {
+    margin-top: 20px;
+    font-size: 1.2rem;
+    font-weight: 900;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 2px;
 }

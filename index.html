@@ -3,51 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Penalty Glory - KILLER EDITION</title>
+    <title>Brasileirão Penalty Challenge - Precision Edition</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div id="kill-switch-screen">
-        <!-- ENTRADA DIRETA: SEM PÁGINAS DE CARREGAMENTO -->
-        <div id="main-menu" class="active-screen">
-            <h1 class="glory-title">PENALTY GLORY</h1>
-            <div class="subtitle-neon">BRASILEIRÃO ELITE</div>
-            <button onclick="changeScreen('team-selection')" class="btn-direct">SELEÇÃO DE TIMES</button>
-        </div>
+    <div id="game-wrapper">
+        <!-- Entrada Direta -->
+        <section id="menu-screen" class="screen active">
+            <h1 class="main-title">PENALTY CHALLENGE</h1>
+            <p class="main-subtitle">SÉRIE A - PRECISION EDITION</p>
+            <button onclick="nav('selection')" class="btn-start">Jogar Campeonato</button>
+        </section>
 
-        <div id="team-selection" class="hidden-screen">
-            <h2 class="ui-title">ESCOLHA SEU ESCUDO</h2>
+        <!-- Seleção -->
+        <section id="selection-screen" class="screen">
+            <h2 class="ui-title">SELECIONE SEU CLUBE</h2>
             <div id="teams-grid"></div>
-            <button id="start-btn" disabled onclick="startGame()" class="btn-direct">DISPUTAR MATA-MATA</button>
-        </div>
+            <button id="start-btn" disabled onclick="initGame()" class="btn-start">Entrar na Arena</button>
+        </section>
 
-        <div id="game-screen" class="hidden-screen">
-            <div id="game-hud">
-                <div class="score-container">
-                    <div class="team-label" id="p-team-name">VOCÊ</div>
-                    <div class="score-box"><span id="p-score">0</span> - <span id="ai-score">0</span></div>
-                    <div class="team-label" id="ai-team-name">IA</div>
+        <!-- Arena (720p Fixa) -->
+        <section id="game-screen" class="screen">
+            <div id="hud-master">
+                <div class="match-box">
+                    <div class="team-side">
+                        <img id="p-logo" src="">
+                        <span id="p-goals">0</span>
+                    </div>
+                    <div class="vs-badge">VS</div>
+                    <div class="team-side">
+                        <span id="ai-goals">0</span>
+                        <img id="ai-logo" src="">
+                    </div>
                 </div>
-                <div id="turn-indicator">VOCÊ BATE</div>
-                <div id="shots-left">ROUND: 1/5</div>
+                <div id="stage-label">OITAVAS DE FINAL</div>
+                <div id="round-dots"></div>
+                <!-- Barra de Força Precision -->
+                <div id="power-bar-container">
+                    <div id="power-bar-fill"></div>
+                    <div class="power-marker">80%</div>
+                </div>
             </div>
 
-            <div id="viewport-wrap">
+            <div id="viewport">
                 <canvas id="gameCanvas"></canvas>
+                <div id="aim-reticle"></div>
+                <div id="ai-hint"></div> <!-- Dica do Friv -->
             </div>
 
-            <div id="action-msg">CARREGANDO...</div>
-            <div id="controls-panel">SETAS: MIRAR/PULAR | ESPAÇO: CHUTAR</div>
-        </div>
-
-        <div id="victory-screen" class="hidden-screen">
-            <div id="trophy-award">
-                <img id="winner-shield" src="" alt="">
-                <h1 class="bounce-text">CAMPEÃO!</h1>
+            <div id="game-msg">PREPARE O CHUTE</div>
+            <div class="controls-legend">
+                SETAS: MOVER MIRA | ESPAÇO: CARREGAR/SOLTAR CHUTE
             </div>
-            <button onclick="location.reload()" class="btn-direct">REJOGAR</button>
-        </div>
+        </section>
+
+        <!-- Final / Troféu -->
+        <section id="final-screen" class="screen">
+            <div class="victory-box">
+                <img id="winner-img" src="">
+                <h1 class="glow-text">CAMPEÃO!</h1>
+            </div>
+            <button onclick="location.reload()" class="btn-start">Reiniciar</button>
+        </section>
     </div>
     <script src="game.js"></script>
 </body>
