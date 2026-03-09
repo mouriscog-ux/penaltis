@@ -3,74 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brasileirão Penalty & Glory - Ultimate Edition</title>
+    <title>Penalty Glory - KILLER EDITION</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700;900&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div id="app">
-        <!-- Menu Principal -->
-        <section id="main-menu" class="screen">
-            <h1 class="master-title">PENALTY & GLORY</h1>
-            <p class="master-subtitle">BRASILEIRÃO MASTER</p>
-            <div class="menu-actions">
-                <button onclick="showScreen('team-selection')" class="btn-master">Começar Temporada</button>
-            </div>
-            <div id="init-check">Verificando Protocolos Zero-Error...</div>
-        </section>
+    <div id="kill-switch-screen">
+        <!-- ENTRADA DIRETA: SEM PÁGINAS DE CARREGAMENTO -->
+        <div id="main-menu" class="active-screen">
+            <h1 class="glory-title">PENALTY GLORY</h1>
+            <div class="subtitle-neon">BRASILEIRÃO ELITE</div>
+            <button onclick="changeScreen('team-selection')" class="btn-direct">SELEÇÃO DE TIMES</button>
+        </div>
 
-        <!-- Seleção de Time -->
-        <section id="team-selection" class="screen" style="display: none;">
-            <h2 class="section-title">SELECIONE SEU CLUBE</h2>
+        <div id="team-selection" class="hidden-screen">
+            <h2 class="ui-title">ESCOLHA SEU ESCUDO</h2>
             <div id="teams-grid"></div>
-            <div class="selection-footer">
-                <button id="start-btn" disabled class="btn-master">Entrar no Caldeirão</button>
-            </div>
-        </section>
+            <button id="start-btn" disabled onclick="startGame()" class="btn-direct">DISPUTAR MATA-MATA</button>
+        </div>
 
-        <!-- Arena (Centralizada 1280x720) -->
-        <section id="game-screen" class="screen" style="display: none;">
-            <div id="hud">
-                <div class="top-row">
-                    <div class="match-info">
-                        <img id="team-logo-hud" src="">
-                        <span id="match-phase">OITAVAS DE FINAL</span>
-                    </div>
-                    <div class="scoreboard-master">
-                        <div class="player-side">VOCÊ: <span id="player-score">0</span></div>
-                        <div class="vs-label">VS</div>
-                        <div class="ai-side">IA: <span id="ai-score">0</span></div>
-                    </div>
+        <div id="game-screen" class="hidden-screen">
+            <div id="game-hud">
+                <div class="score-container">
+                    <div class="team-label" id="p-team-name">VOCÊ</div>
+                    <div class="score-box"><span id="p-score">0</span> - <span id="ai-score">0</span></div>
+                    <div class="team-label" id="ai-team-name">IA</div>
                 </div>
-                <!-- Barra de Confiança (Master Link 3) -->
-                <div class="confidence-container">
-                    <div id="confidence-bar"></div>
-                    <div class="confidence-label">BARRA DE CONFIANÇA</div>
-                </div>
-                <div id="status-display">PREPARE-SE</div>
+                <div id="turn-indicator">VOCÊ BATE</div>
+                <div id="shots-left">ROUND: 1/5</div>
             </div>
 
-            <div id="stadium">
-                <div id="weather-effect"></div>
+            <div id="viewport-wrap">
                 <canvas id="gameCanvas"></canvas>
             </div>
 
-            <div class="advanced-hints">
-                <div id="mode-hint">VOCÊ É O BATEDOR</div>
-                <div class="controls-list">⬇️ RECUAR | ⬆️ CORRER | ⬅️➡️ ANGULAR | SHIFT: TRIVELA</div>
-            </div>
-        </section>
+            <div id="action-msg">CARREGANDO...</div>
+            <div id="controls-panel">SETAS: MIRAR/PULAR | ESPAÇO: CHUTAR</div>
+        </div>
 
-        <!-- Troféu / Fim -->
-        <section id="victory-screen" class="screen" style="display: none;">
-            <div id="trophy-container">
-                <img id="champion-shield" src="">
-                <h1 class="winner-text">CAMPEÃO BRASILEIRO!</h1>
+        <div id="victory-screen" class="hidden-screen">
+            <div id="trophy-award">
+                <img id="winner-shield" src="" alt="">
+                <h1 class="bounce-text">CAMPEÃO!</h1>
             </div>
-            <button onclick="location.reload()" class="btn-master">Reiniciar</button>
-        </section>
+            <button onclick="location.reload()" class="btn-direct">REJOGAR</button>
+        </div>
     </div>
-
     <script src="game.js"></script>
 </body>
 </html>
