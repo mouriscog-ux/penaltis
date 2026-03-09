@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batedor de Elite - Brasileirão</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <!-- Menu Principal -->
+        <section id="main-menu" class="screen">
+            <h1 class="game-title">BATEDOR DE ELITE</h1>
+            <p class="game-subtitle">BRASILEIRÃO SERIES</p>
+            <div class="menu-actions">
+                <button onclick="showScreen('team-selection')" class="btn-action">Novo Torneio</button>
+            </div>
+        </section>
+
+        <!-- Seleção de Time -->
+        <section id="team-selection" class="screen" style="display: none;">
+            <h2 class="section-title">ESCOLHA SEU CLUBE</h2>
+            <div id="teams-grid"></div>
+            <div class="selection-footer">
+                <button id="start-btn" disabled class="btn-action">Entrar no Estádio</button>
+            </div>
+        </section>
+
+        <!-- Arena de Jogo -->
+        <section id="game-screen" class="screen" style="display: none;">
+            <div id="hud">
+                <div class="top-bar">
+                    <div class="team-info">
+                        <img id="team-logo-hud" src="">
+                        <span id="match-phase">OITAVAS DE FINAL</span>
+                    </div>
+                    <div class="score-board">
+                        GOLS: <span id="goals-count">0</span> / 10
+                    </div>
+                </div>
+                <div id="status-msg">PREPARE-SE PARA O CHUTE</div>
+            </div>
+
+            <div id="stadium-viewport">
+                <!-- O Campo de Jogo -->
+                <canvas id="gameCanvas"></canvas>
+            </div>
+
+            <div class="controls-hint" id="controls-text">
+                ⬇️ RECUAR PARA POTÊNCIA | ⬅️➡️ ANGULAR | ⬆️ CORRER E CHUTAR
+            </div>
+        </section>
+
+        <!-- Resultado Final -->
+        <section id="result-screen" class="screen" style="display: none;">
+            <h2 id="result-title">FIM DE JOGO</h2>
+            <p id="result-msg"></p>
+            <button id="result-btn" class="btn-action">Continuar</button>
+        </section>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
