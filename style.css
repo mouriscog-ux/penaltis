@@ -1,10 +1,10 @@
 :root {
-    --bg-field: #0a1f12;
+    --bg: #040508;
     --primary: #00ff88;
     --secondary: #00bcd4;
     --accent: #ff0055;
-    --text: #ffffff;
-    --glass: rgba(255, 255, 255, 0.05);
+    --field: #0d2b1a;
+    --gold: #ffd700;
 }
 
 * {
@@ -16,11 +16,10 @@
 }
 
 body {
-    background: #050608;
-    color: var(--text);
+    background: var(--bg);
+    color: #fff;
     overflow: hidden;
     height: 100vh;
-    width: 100vw;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -42,20 +41,20 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background: radial-gradient(circle at center, #111a28 0%, #050608 100%);
+    background: radial-gradient(circle at center, #0a111a 0%, #040508 100%);
     z-index: 10;
 }
 
-/* Centralização Forçada 1280x720 */
-#stadium-viewport {
+/* Centralização Forçada MASTER (1280x720) */
+#stadium {
+    position: relative;
     width: 90vw;
     max-width: 1280px;
-    aspect-ratio: 16 / 9;
-    background: var(--bg-field);
-    border: 5px solid rgba(255,255,255,0.05);
-    border-radius: 8px;
-    position: relative;
-    box-shadow: 0 0 100px rgba(0,0,0,0.9);
+    height: 50.6vw; /* 16:9 ratio */
+    max-height: 720px;
+    background: #000;
+    border: 4px solid var(--primary);
+    box-shadow: 0 0 100px rgba(0, 255, 136, 0.2);
     overflow: hidden;
     display: flex;
     justify-content: center;
@@ -68,11 +67,29 @@ body {
     display: block;
 }
 
-/* HUD */
+/* Efeito de Clima (Chuva/Neblina) */
+#weather-effect {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+    background: transparent;
+}
+
+.rain {
+    background: linear-gradient(to bottom, rgba(255,255,255,0.05), transparent);
+    animation: rain-move 0.2s linear infinite;
+}
+
+@keyframes rain-move {
+    to { transform: translateY(100px); }
+}
+
+/* HUD MASTER */
 #hud {
     position: absolute;
-    top: 5vh;
-    width: 80%;
+    top: 3%;
+    width: 90%;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -80,76 +97,110 @@ body {
     pointer-events: none;
 }
 
-.top-bar {
+.top-row {
     width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgba(0,0,0,0.8);
-    padding: 1rem 2rem;
-    border-radius: 100px;
-    border-bottom: 2px solid var(--primary);
-    backdrop-filter: blur(10px);
 }
 
-.team-info {
+.match-info {
     display: flex;
     align-items: center;
     gap: 1.5rem;
+    background: rgba(0,0,0,0.8);
+    padding: 0.5rem 2rem;
+    border-radius: 50px;
+    border-left: 4px solid var(--secondary);
 }
 
 #team-logo-hud {
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
     object-fit: contain;
 }
 
 #match-phase {
     font-weight: 900;
-    letter-spacing: 3px;
+    letter-spacing: 2px;
+    font-size: 0.8rem;
     color: var(--secondary);
 }
 
-.score-board {
-    font-size: 1.5rem;
+.scoreboard-master {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    background: rgba(0,0,0,0.8);
+    padding: 0.8rem 3rem;
+    border-radius: 50px;
+    border: 2px solid var(--primary);
+}
+
+.player-side, .ai-side {
+    font-size: 2rem;
     font-weight: 900;
 }
 
-#status-msg {
-    margin-top: 15px;
-    font-size: 0.9rem;
-    font-weight: 700;
-    background: var(--accent);
-    padding: 5px 20px;
-    border-radius: 4px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
+.vs-label {
+    font-size: 0.8rem;
+    color: var(--accent);
+    font-weight: 900;
 }
 
-/* UI Elements */
-.game-title {
-    font-size: 6rem;
+/* Barra de Confiança */
+.confidence-container {
+    width: 300px;
+    height: 10px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 5px;
+    margin-top: 15px;
+    position: relative;
+    overflow: hidden;
+}
+
+#confidence-bar {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(to right, var(--secondary), var(--primary));
+    transition: width 0.3s;
+}
+
+.confidence-label {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.6rem;
+    font-weight: 900;
+    opacity: 0.6;
+}
+
+/* UI MASTER */
+.master-title {
+    font-size: 7rem;
     font-weight: 900;
     background: linear-gradient(180deg, #fff 0%, #00ff88 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     line-height: 0.9;
+    text-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
 }
 
-.game-subtitle {
-    letter-spacing: 15px;
+.master-subtitle {
+    letter-spacing: 20px;
     margin-bottom: 4rem;
     color: var(--primary);
     font-weight: 700;
     opacity: 0.7;
 }
 
-.btn-action {
+.btn-master {
     background: var(--primary);
     color: #000;
     border: none;
     padding: 1.2rem 4rem;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     font-weight: 900;
     border-radius: 4px;
     cursor: pointer;
@@ -157,14 +208,11 @@ body {
     transition: 0.3s;
 }
 
-.btn-action:hover:not(:disabled) {
+.btn-master:hover {
     transform: scale(1.05);
-    box-shadow: 0 0 30px var(--primary);
+    box-shadow: 0 0 40px var(--primary);
 }
 
-.btn-action:disabled { opacity: 0.2; cursor: default; }
-
-/* Grid Seleção */
 #teams-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -172,34 +220,36 @@ body {
     max-height: 50vh;
     overflow-y: auto;
     padding: 2rem;
-    background: var(--glass);
-    border-radius: 12px;
-    margin-bottom: 2rem;
 }
 
 .team-card {
     padding: 1.5rem;
-    background: rgba(255,255,255,0.02);
+    background: rgba(255,255,255,0.03);
     border: 2px solid transparent;
-    border-radius: 8px;
+    border-radius: 4px;
     cursor: pointer;
     display: flex;
     flex-direction: column;
     align-items: center;
-    transition: 0.2s;
 }
 
-.team-card:hover { background: rgba(255,255,255,0.08); }
 .team-card.selected { border-color: var(--primary); background: rgba(0, 255, 136, 0.1); }
 
-.team-logo-ui { width: 60px; height: 60px; margin-bottom: 10px; }
-.team-name-ui { font-size: 0.8rem; font-weight: 900; text-align: center; }
-
-.controls-hint {
+.advanced-hints {
     position: absolute;
-    bottom: 5vh;
-    font-size: 0.8rem;
-    font-weight: 900;
-    letter-spacing: 2px;
-    opacity: 0.5;
+    bottom: 3%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
 }
+
+#mode-hint {
+    background: var(--accent);
+    padding: 2px 15px;
+    font-size: 0.7rem;
+    font-weight: 900;
+    border-radius: 20px;
+}
+
+.controls-list { font-size: 0.7rem; opacity: 0.5; font-weight: 700; }
